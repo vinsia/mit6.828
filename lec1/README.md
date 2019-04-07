@@ -2,9 +2,11 @@
 
 ### Hint:
 When you first boot jos with qemu, you may found a error like "Triple fault.  Halting for inspection via QEMU monitor."
-Cause the default GNFMakefile lacks of GCC flag (-fno-pic).
+Cause the default GNFMakefile lacks of GCC flag (-fno-pic), you should add this flag into GNUMakefile.
 
 ### Exercise 2
+  Use GDB's si (Step Instruction) command to trace into the ROM BIOS for a few more instructions, and try to guess what it might be doing. You might want to look at Phil Storrs I/O Ports Description, as well as other materials on the 6.828 reference materials page. No need to figure out all the details - just the general idea of what the BIOS is doing first.
+
 Bootloader open A20 gate, load global page table, then alter into real mode.
 
 ### Exercise 3
@@ -29,7 +31,7 @@ bootload find kern entry address from elf header info, then call into it.
 ```
 4. How does the boot loader decide how many sectors it must read in order to fetch the entire kernel from disk? Where does it find this information?
 
-[ELF Format](http://www.skyfree.org/linux/references/ELF_Format.pdf)
+  ELF doc -> [ELF Format](http://www.skyfree.org/linux/references/ELF_Format.pdf)
 
 ```
 	ELFHDR -> e_phoff # This member holds the program header table’s file offset in bytes. If the file has no program header table, this member holds zero.
@@ -37,18 +39,19 @@ bootload find kern entry address from elf header info, then call into it.
 ```
 
 ### Exercise 4
-Read about programming with pointers in C. The best reference for the C language is The C Programming Language by Brian Kernighan and Dennis Ritchie (known as 'K&R'). We recommend that students purchase this book (here is an Amazon Link) or find one of MIT's 7 copies.
+  Read about programming with pointers in C. The best reference for the C language is The C Programming Language by Brian Kernighan and Dennis Ritchie (known as 'K&R'). We recommend that students purchase this book (here is an Amazon Link) or find one of MIT's 7 copies.
 
-Read 5.1 (Pointers and Addresses) through 5.5 (Character Pointers and Functions) in K&R. Then download the code for pointers.c, run it, and make sure you understand where all of the printed values come from. In particular, make sure you understand where the pointer addresses in printed lines 1 and 6 come from, how all the values in printed lines 2 through 4 get there, and why the values printed in line 5 are seemingly corrupted.
+  Read 5.1 (Pointers and Addresses) through 5.5 (Character Pointers and Functions) in K&R. Then download the code for pointers.c, run it, and make sure you understand where all of the printed values come from. In particular, make sure you understand where the pointer addresses in printed lines 1 and 6 come from, how all the values in printed lines 2 through 4 get there, and why the values printed in line 5 are seemingly corrupted.
 
-There are other references on pointers in C (e.g., A tutorial by Ted Jensen that cites K&R heavily), though not as strongly recommended.
+  There are other references on pointers in C (e.g., A tutorial by Ted Jensen that cites K&R heavily), though not as strongly recommended.
 
-Warning: Unless you are already thoroughly versed in C, do not skip or even skim this reading exercise. If you do not really understand pointers in C, you will suffer untold pain and misery in subsequent labs, and then eventually come to understand them the hard way. Trust us; you don't want to find out what "the hard way" is.
+  Warning: Unless you are already thoroughly versed in C, do not skip or even skim this reading exercise. If you do not really understand pointers in C, you will suffer untold pain and misery in subsequent labs, and then eventually come to understand them the hard way. Trust us; you don't want to find out what "the hard way" is.
 
 ### Exercise 5
+  Trace through the first few instructions of the boot loader again and identify the first instruction that would "break" or otherwise do the wrong thing if you were to get the boot loader's link address wrong. Then change the link address in boot/Makefrag to something wrong, run make clean, recompile the lab with make, and trace into the boot loader again to see what happens. Don't forget to change the link address back and make clean again afterward!
 
 ### Exercise 6
-Reset the machine (exit QEMU/GDB and start them again). Examine the 8 words of memory at 0x00100000 at the point the BIOS enters the boot loader, and then again at the point the boot loader enters the kernel. Why are they different? What is there at the second breakpoint? (You do not really need to use QEMU to answer this question. Just think.)
+  Reset the machine (exit QEMU/GDB and start them again). Examine the 8 words of memory at 0x00100000 at the point the BIOS enters the boot loader, and then again at the point the boot loader enters the kernel. Why are they different? What is there at the second breakpoint? (You do not really need to use QEMU to answer this question. Just think.)
 
 When system enters boot loader there is nothing in address 0x100000.
 After enters kernel, there is some content because bootloader load the kernel between(960KB-1MB 64KB).
