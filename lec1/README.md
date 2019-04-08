@@ -56,5 +56,83 @@ bootload find kern entry address from elf header info, then call into it.
 When system enters boot loader there is nothing in address 0x100000.
 After enters kernel, there is some content because bootloader load the kernel between(960KB-1MB 64KB).
 
+### Exercise 7
+  What is the first instruction after the new mapping is established that would fail to work properly if the mapping weren't in place? Comment out the movl %eax, %cr0 in kern/entry.S, trace into it, and see if you were right.
 
 
+Because we are not truly mapping our virtual address 0xf0100000 to 0x00100000, so we are not able to access such high memory, which will cause page falut.
+
+### Exercise 8
+  We have omitted a small fragment of code - the code necessary to print octal numbers using patterns of the form "%o". Find and fill in this code fragment.
+
+```c
+diff --git a/lib/printfmt.c b/lib/printfmt.c
+index 28e01c9..c0976de 100644
+--- a/lib/printfmt.c
++++ b/lib/printfmt.c
+@@ -206,10 +206,9 @@ vprintfmt(void (*putch)(int, void*), void *putdat, const char *fmt, va_list ap)
+ 		// (unsigned) octal
+ 		case 'o':
+ 			// Replace this with your code.
+-			putch('X', putdat);
+-			putch('X', putdat);
+-			putch('X', putdat);
+-			break;
++      num = getuint(&ap, lflag);
++      base = 8;
++      goto number;
+ 
+ 		// pointer
+ 		case 'p':
+```
+
+1. Explain the interface between printf.c and console.c. Specifically, what function does console.c export? How is this function used by printf.c?
+console.c is a bridge of software to display, it exports some methods to display content in monitor. printf.c will use the function cputchar.
+
+2. Explain the following from console.c:
+
+```c
+1      if (crt_pos >= CRT_SIZE) {
+2              int i;
+3              memmove(crt_buf, crt_buf + CRT_COLS, (CRT_SIZE - CRT_COLS) * sizeof(uint16_t));
+4              for (i = CRT_SIZE - CRT_COLS; i < CRT_SIZE; i++)
+5                      crt_buf[i] = 0x0700 | ' ';
+6              crt_pos -= CRT_COLS;
+7      }>)}
+```
+
+This is will refresh the monitor and append a new line.
+
+### Exercise 9
+Determine where the kernel initializes its stack, and exactly where in memory its stack is located. How does the kernel reserve space for its stack? And at which "end" of this reserved area is the stack pointer initialized to point to?
+
+```c
+movl $(bootstacktop),%esp # at kern/entry.S Line 77
+```
+
+### Exercise 11 
+
+```c
+diff --git a/kern/monitor.c b/kern/monitor.c
+index e137e92..afe2f3b 100644
+--- a/kern/monitor.c
++++ b/kern/monitor.c
+@@ -58,6 +58,18 @@ int
+ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
+ {
+ 	// Your code here.
++  uint32_t eip;
++  uint32_t* ebp = (uint32_t *) read_ebp();
++  while (ebp) {
++    eip = *(ebp + 1);
++    cprintf("ebp %x eip %x args", ebp, eip);
++    uint32_t *args = ebp + 2;
++    for (int i=0; i<5;i++) {
++      cprintf(" %08x ", (uint32_t) args[i]);
++    }
++    cprintf("\n");
++    ebp = (uint32_t *) *ebp;
++  }
+ 	return 0;
+ }
+```
