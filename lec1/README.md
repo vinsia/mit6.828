@@ -136,3 +136,64 @@ index e137e92..afe2f3b 100644
  	return 0;
  }
 ```
+### Exercise 12
+Modify your stack backtrace function to display, for each eip, the function name, source file name, and line number corresponding to that eip.
+
+In this exercise we should understand struct of stabs segement which stores debug info. 
+```c
+diff --git a/kern/kdebug.c b/kern/kdebug.c
+index 9547143..1b2a655 100644
+--- a/kern/kdebug.c
++++ b/kern/kdebug.c
+@@ -179,7 +179,12 @@ debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)
+          //      Look at the STABS documentation and <inc/stab.h> to find
+          //      which one.
+          // Your code here.
+  -
+  +  stab_binsearch(stabs, &lline, &rline, N_SLINE, addr);
+  +  if (lline <= rline) {
+  +      info->eip_line = stabs[lline].n_desc;
+  +  } else {
+  +      return -1;
+  +  }
+  
+          // Search backwards from the line number for the relevant filename
+          // stab.>)
+
+--- a/kern/monitor.c
++++ b/kern/monitor.c
+@@ -24,6 +24,7 @@ struct Command {
+ static struct Command commands[] = {
+         { "help", "Display this list of commands", mon_help },
+         { "kerninfo", "Display information about the kernel", mon_kerninfo },
+ +  { "backtrace", "Display backtrace info", mon_backtrace },
+  };
+
+ /***** Implementations of basic kernel monitor commands *****/
+@@ -57,7 +58,23 @@ mon_kerninfo(int argc, char **argv, struct Trapframe *tf)
+ int
+ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
+ {
+ -       // Your code here.
+ +  uint32_t eip;
+ +  uint32_t* ebp = (uint32_t *) read_ebp();
+ +  while (ebp) {
+ +    eip = *(ebp + 1);
+ +    cprintf("ebp %x eip %x args", ebp, eip);
+ +    uint32_t *args = ebp + 2;
+ +    for (int i=0; i<5;i++) {
+ +      cprintf(" %08x ", (uint32_t) args[i]);
+ +    }
+ +    cprintf("\n");
+ +               struct Eipdebuginfo debug_info;
+ +    debuginfo_eip(eip, &debug_info);
+ +               cprintf("\t%s:%d: %.*s+%d\n",
+     +                       debug_info.eip_file, debug_info.eip_line, debug_info.eip_fn_namelen,
+     +                       debug_info.eip_fn_name, eip - debug_info.eip_fn_addr);
+ +    ebp = (uint32_t *) *ebp;
+ +  }
+         return 0;
+          }>)}}}
+```
+
+
