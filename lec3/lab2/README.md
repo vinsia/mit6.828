@@ -80,7 +80,20 @@ LA = Page Directory Index (10bit, 1024) | Page Table Index (10bit, 1024) | Offse
 And we have 1024 * 1024 Page Table entities, each of them is also 4 Bytes. 
 
 ## Exercise 2
-1. Actually we do not need to care about the segment translation(va -> la), cause we don't need to use it. we only cares about page translation(la -> pa).
+```
+A C pointer is the "offset" component of the virtual address. In boot/boot.S, we installed a Global Descriptor Table (GDT) that effectively disabled segment translation by setting all segment base addresses to 0 and limits to 0xffffffff. Hence the "selector" has no effect and the linear address always equals the offset of the virtual address. In lab 3, we'll have to interact a little more with segmentation to set up privilege levels, but as for memory translation, we can ignore segmentation throughout the JOS labs and focus solely on page translation.
+```
+1. Actually we do not need to care about the segment translation(va -> la), cause we mappeded them in places. we only cares about page translation(la -> pa).
 2. Each Page Table entities is formed like 31 -- 12 Page Num | 11 --- 0 PLP(page level protection).
 PLP describes the supervisor level which indicates page is for operating system or user.
+
+## Question
+```
+Assuming that the following JOS kernel code is correct, what type should variable x have, uintptr_t or physaddr_t?
+	mystery_t x;
+	char* value = return_a_pointer();
+	*value = 10;
+	x = (mystery_t) value;
+```
+It should be uintptr_t, all addresses in JOS are treated as a virtual address. so JOS remaps all of physical memory starting from physical address 0 at virtual address 0xf0000000 is to help the kernel read and write memory for which it knows just the physical address.
 
